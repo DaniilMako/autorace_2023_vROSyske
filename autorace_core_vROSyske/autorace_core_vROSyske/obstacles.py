@@ -10,7 +10,8 @@ import numpy as np
 
 
 class Obstacles_Handler(Node):
-    """ Объезд препятствий.
+    """
+    Объезд препятствий.
     С помощью лидара отслеживается расстояние перед роботом до препятсвия. 
     Принудительно поворачивает робота "по змейке". 
     """
@@ -18,25 +19,25 @@ class Obstacles_Handler(Node):
     def __init__(self):
         super().__init__('Obstacles_Handler')
 
-        # Publishers
-        self.enable_following_pub = self.create_publisher(Bool, '/enable_following', 1)
-        self.max_vel_pub = self.create_publisher(Float64, '/max_vel', 1)
-        self.rotate_pub = self.create_publisher(Rotate, '/rotate', 1)
+        # Издатели
+        self.enable_following_pub = self.create_publisher(Bool, '/enable_following', 1)  # Издатель для включения следования по полосе
+        self.max_vel_pub = self.create_publisher(Float64, '/max_vel', 1)  # Издатель для установки максимальной скорости
+        self.rotate_pub = self.create_publisher(Rotate, '/rotate', 1)  # Издатель для отправки команды поворота
         
-        # Subscribers
-        self.rotate_done_sub = self.create_subscription(Int8, '/rotate_done', self.set_rotate_done, 1)
-        self.sign_sub = self.create_subscription(String, '/sign', self.handle_sign, 1) 
-        self.laser_scan_sub = self.create_subscription(LaserScan, '/scan', self.get_distance, 1)
-        self.enable_detection_pub = self.create_subscription(Bool, '/enable_detection', self.get_detection_state, 1)
-        self.sub_odom = self.create_subscription(Odometry, '/odom', self.get_odom, 1)
+        # Подписчики
+        self.rotate_done_sub = self.create_subscription(Int8, '/rotate_done', self.set_rotate_done, 1)  # Подписчик на сигнал о завершении поворота
+        self.sign_sub = self.create_subscription(String, '/sign', self.handle_sign, 1)  # Подписчик на распознанные знаки
+        self.laser_scan_sub = self.create_subscription(LaserScan, '/scan', self.get_distance, 1)  # Подписчик на данные лидара
+        self.enable_detection_pub = self.create_subscription(Bool, '/enable_detection', self.get_detection_state, 1)  # Подписчик на состояние детекции знаков
+        self.sub_odom = self.create_subscription(Odometry, '/odom', self.get_odom, 1)  # Подписчик на данные одометрии
 
-        self.ID = 1 # Идентификатор ноды
+        self.ID = 1  # Идентификатор ноды
 
-        self.enable_detection = False # Разрешена ли детекция знака
+        self.enable_detection = False  # Разрешена ли детекция знака
 
-        self.dir = True     # Направление поворота: True - налево, False - направо
-        self.enable = False # Режим объезда препятствий
-        self.turned = False # Флаг окончания поворота
+        self.dir = True  # Направление поворота: True - налево, False - направо
+        self.enable = False  # Режим объезда препятствий
+        self.turned = False  # Флаг окончания поворота
 
         # Скорости
         self.in_speed = self.declare_parameter('in_speed', 0.0).get_parameter_value().double_value
@@ -58,59 +59,65 @@ class Obstacles_Handler(Node):
         self.distance = self.declare_parameter('distance', 0.0).get_parameter_value().double_value
 
     def handle_sign(self, msg):
+        """Обработчик распознанных знаков."""
         
         # Действия при проезде знака дорожных работ
         if msg.data == 'road_works_sign' and self.enable_detection:
-            self.max_vel_pub.publish(Float64(data = self.in_speed))
+            self.max_vel_pub.publish(Float64(data = self.in_speed))  # Устанавливаем скорость для проезда зоны работ
 
     def get_distance(self, msg):
+        """Обработчик данных лидара."""
         
         # При нахождении знака определяем расстояние до препятствия 
         if self.enable:
-            front_distance = np.min(np.concatenate((msg.ranges[345:360], msg.ranges[0:15]), axis = 0))
+            front_distance = np.min(np.concatenate((msg.ranges[345:360], msg.ranges[0:15]), axis = 0))  # Определяем минимальное расстояние перед роботом
 
             if front_distance < self.distance:
-                self.enable_following_pub.publish(Bool(data = False))
+                self.enable_following_pub.publish(Bool(data = False))  # Отключаем следование по полосе
 
                 # Поворот налево 
                 if self.dir:
-                    self.rotate_pub.publish(Rotate(angle = self.angle_L, linear_x = self.linear_x_L, angular_z = self.angular_z_L, id = self.ID))
+                    self.rotate_pub.publish(Rotate(angle = self.angle_L, linear_x = self.linear_x_L, angular_z = self.angular_z_L, id = self.ID))  # Отправляем команду поворота налево
 
                 # Поворот направо 
                 if not self.dir and self.turned:
-                    self.rotate_pub.publish(Rotate(angle = self.angle_R, linear_x = self.linear_x_R, angular_z = self.angular_z_R, id = self.ID))
+                    self.rotate_pub.publish(Rotate(angle = self.angle_R, linear_x = self.linear_x_R, angular_z = self.angular_z_R, id = self.ID))  # Отправляем команду поворота направо
                
     def set_rotate_done(self, msg):
+        """Обработчик сигнала о завершении поворота."""
         
         if msg.data == self.ID:
-            self.turned = True
+            self.turned = True  # Устанавливаем флаг окончания поворота
 
             # Смена направления поворота
             if self.dir:
-                self.dir = False
+                self.dir = False  # Меняем направление на поворот направо
             else:
-                # Отключение ноды после заершения второго поворота
-                self.enable_following_pub.publish(Bool(data = True))
-                self.max_vel_pub.publish(Float64(data = self.out_speed))
-                rclpy.shutdown()
+                # Отключение ноды после завершения второго поворота
+                self.enable_following_pub.publish(Bool(data = True))  # Включаем следование по полосе
+                self.max_vel_pub.publish(Float64(data = self.out_speed))  # Устанавливаем скорость для выезда из зоны препятствий
+                rclpy.shutdown()  # Завершаем работу узла
 
     def get_detection_state(self, msg):
-        self.enable_detection = msg.data
+        """Обработчик состояния детекции знаков."""
+        self.enable_detection = msg.data  # Устанавливаем состояние детекции знаков
 
     def get_odom(self, msg):
+        """Обработчик данных одометрии."""
 
         pose_x = msg.pose.pose.position.x
         pose_y = msg.pose.pose.position.y
 
         if pose_x >= 0.74 and pose_y >= 2.0:
-            self.enable = True
+            self.enable = True  # Включаем режим объезда препятствий
 
 
 def main():
-    rclpy.init()
+    """Основная функция для запуска узла."""
+    rclpy.init()  # Инициализация ROS 2
 
-    node = Obstacles_Handler()
-    rclpy.spin(node)
+    node = Obstacles_Handler()  # Создание экземпляра узла
+    rclpy.spin(node)  # Запуск обработки сообщений
     
-    node.destroy_node()
-    rclpy.shutdown()
+    node.destroy_node()  # Уничтожение узла после завершения работы
+    rclpy.shutdown()  # Завершение работы ROS 2

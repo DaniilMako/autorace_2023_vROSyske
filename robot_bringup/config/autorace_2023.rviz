@@ -4,8 +4,8 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Image2
         - /TF1/Frames1
-        - /Image3
       Splitter Ratio: 0.5
     Tree Height: 188
   - Class: rviz_common/Selection
@@ -175,7 +175,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /color/image
+        Value: /color/detect
       Value: true
     - Class: rviz_default_plugins/TF
       Enabled: true
@@ -325,5 +325,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1161
-  X: 1030
+  X: 1284
   Y: 140

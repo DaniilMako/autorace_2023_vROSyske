@@ -9,22 +9,23 @@ from robot_rotate_interface.msg import Rotate
 import numpy as np
 
 class Rotator(Node):
-    """Совершает поворот робота на заданный угол с заданными угловой и линейной скоростями.
+    """
+    Совершает поворот робота на заданный угол с заданными угловой и линейной скоростями.
     По завершении поворота посылает сообщение по топику.
     """
 
     def __init__(self):
         super().__init__('Rotator')
 
-        # Publishers
-        self.rotate_done_pub = self.create_publisher(Int8, '/rotate_done', 1)
-        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 1)
+        # Издатели
+        self.rotate_done_pub = self.create_publisher(Int8, '/rotate_done', 1)  # Издатель для сигнала о завершении поворота
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 1)  # Издатель для управления движением робота
 
-        # Subscribers
-        self.odom_sub = self.create_subscription(Odometry, '/odom', self.get_odom, 1)
-        self.rotate_sub = self.create_subscription(Rotate, '/rotate', self.get_data, 1)
+        # Подписчики
+        self.odom_sub = self.create_subscription(Odometry, '/odom', self.get_odom, 1)  # Подписчик на данные одометрии
+        self.rotate_sub = self.create_subscription(Rotate, '/rotate', self.get_data, 1)  # Подписчик на команды поворота
 
-        self.timer = self.create_timer(0.1, self.rotate_robot)
+        self.timer = self.create_timer(0.1, self.rotate_robot)  # Таймер для регулярного вызова функции поворота
 
         self.cur_angle = None   # Текущий абсолютный угол поворота
         self.start_angle = None # Абсолютный угол поворота при начале поворота
@@ -35,6 +36,7 @@ class Rotator(Node):
         self.id = None          # Идентификатор вызывающей ноды
 
     def rotate_robot(self):
+        """Функция для выполнения поворота робота."""
         
         # Принудительно повернуть робота на заданный угол
         if self.angle is not None and self.start_angle is not None and self.cur_angle is not None:
@@ -46,8 +48,9 @@ class Rotator(Node):
             # Проверка на окончание поворота
             if np.abs(diff) >= np.abs(self.angle):
                 
-                self.rotate_done_pub.publish(Int8(data = self.id))
+                self.rotate_done_pub.publish(Int8(data = self.id))  # Отправка сигнала о завершении поворота
 
+                # Сброс переменных
                 self.angle = None
                 self.start_angle = None
                 self.cur_angle = None
@@ -55,12 +58,13 @@ class Rotator(Node):
         
             else:
                 twist = Twist()
-                twist.linear.x = self.linear_x
-                twist.angular.z = self.angular_z * np.sign(self.angle)
+                twist.linear.x = self.linear_x  # Установка линейной скорости
+                twist.angular.z = self.angular_z * np.sign(self.angle)  # Установка угловой скорости
 
-                self.cmd_vel_pub.publish(twist)
+                self.cmd_vel_pub.publish(twist)  # Отправка команды на движение
 
     def get_odom(self, msg):
+        """Обработчик данных одометрии."""
         
         if self.angle is not None:
 
@@ -74,8 +78,8 @@ class Rotator(Node):
                 self.start_angle = self.cur_angle
 
     def euler_from_quaternion(self, quaternion):
+        """Перевод кватерниона в углы Эйлера."""
         
-        # Перевод кватерниона в углы Эйлера
         x = quaternion.x
         y = quaternion.y
         z = quaternion.z
@@ -95,18 +99,20 @@ class Rotator(Node):
         return roll, pitch, yaw
     
     def get_data(self, msg):
+        """Обработчик команды на поворот."""
 
-        self.angle = msg.angle
-        self.linear_x = msg.linear_x
-        self.angular_z = msg.angular_z
-        self.id = msg.id
+        self.angle = msg.angle  # Угол поворота
+        self.linear_x = msg.linear_x  # Линейная скорость
+        self.angular_z = msg.angular_z  # Угловая скорость
+        self.id = msg.id  # Идентификатор вызывающей ноды
 
 
 def main():
-    rclpy.init()
+    """Основная функция для запуска узла."""
+    rclpy.init()  # Инициализация ROS 2
 
-    node = Rotator()
-    rclpy.spin(node)
+    node = Rotator()  # Создание экземпляра узла
+    rclpy.spin(node)  # Запуск обработки сообщений
     
-    node.destroy_node()
-    rclpy.shutdown()
+    node.destroy_node()  # Уничтожение узла после завершения работы
+    rclpy.shutdown()  # Завершение работы ROS 2
