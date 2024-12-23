@@ -19,7 +19,7 @@ def generate_launch_description():
     
     base_config = os.path.join(pkg_autorace_core, 'config', 'base.yaml')
     intersection_config = os.path.join(pkg_autorace_core, 'config', 'intersection.yaml')
-    # obstacles_config = os.path.join(pkg_autorace_core, 'config', 'obstacles.yaml')
+    obstacles_config = os.path.join(pkg_autorace_core, 'config', 'obstacles.yaml')
 
 
     sign_detection = Node(
@@ -58,11 +58,11 @@ def generate_launch_description():
         name = 'intersection',
         parameters = [intersection_config])
     
-    # obstacles = Node(
-    #     package = 'autorace_core_vROSyske',
-    #     executable = 'obstacles',
-    #     name = 'obstacles',
-    #     parameters = [obstacles_config])
+    obstacles = Node(
+        package = 'autorace_core_vROSyske',
+        executable = 'obstacles',
+        name = 'obstacles',
+        parameters = [obstacles_config])
     
 
     return LaunchDescription([
