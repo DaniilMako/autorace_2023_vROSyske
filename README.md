@@ -13,6 +13,13 @@ A ROS2 metapackage that has necessary packages for AutoRace 2023 challenge.
 
 * `robot_bringup` - holds launch files, worlds and multiple configurations that serve as an example and as a required system for AutoRace to work.
 
+* `autorace_camera` - обработка изображения для следования за линией.
+
+* `autorace_core_vROSyske` - логика прохождения испытаний.
+
+* `robot_rotate_interface` - поворот робота.
+
+
 ## Usage for AutoRace 2023
 
 1. Install dependencies
@@ -31,7 +38,7 @@ A ROS2 metapackage that has necessary packages for AutoRace 2023 challenge.
 3. Source the workspace
 
     ```bash
-    . ~/template_ws/install/setup.bash
+    source install/setup.bash
     ```
 
 4. Launch the simulation
@@ -43,7 +50,7 @@ A ROS2 metapackage that has necessary packages for AutoRace 2023 challenge.
 5. Run your own launch file that controls the robot
 
     ```bash
-    ros2 launch <your_package> <your_launch>
+    ros2 launch robot_bringup autorace_2023.launch.py
     ```
 
 6. Run the referee
