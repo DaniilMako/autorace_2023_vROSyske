@@ -101,6 +101,9 @@ class Intersection_Handler(Node):
             self.offset_pub.publish(Float64(data = self.out_offset))  # Устанавливаем смещение для выезда
             self.max_vel_pub.publish(Float64(data = self.out_speed))  # Устанавливаем скорость для выезда
             self.enable_detection_pub.publish(Bool(data = True))  # Включаем детекцию знаков
+            self.get_logger().info("Узел Intersection_Handler З А В Е Р Ш И Л работу.")
+            self.get_logger().info("Узел Intersection_Handler З А В Е Р Ш И Л работу.")
+            self.get_logger().info("Узел Intersection_Handler З А В Е Р Ш И Л работу.")
             rclpy.shutdown()  # Завершаем работу узла
 
     def set_rotate_done(self, msg):

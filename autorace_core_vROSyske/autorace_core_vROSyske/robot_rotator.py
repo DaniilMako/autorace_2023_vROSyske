@@ -35,6 +35,9 @@ class Rotator(Node):
         self.angular_z = None   # Угловая скорость при повороте
         self.id = None          # Идентификатор вызывающей ноды
 
+        # Логирование: узел запущен
+        # self.get_logger().info("Узел Rotator запущен.")
+
     def rotate_robot(self):
         """Функция для выполнения поворота робота."""
         
@@ -50,6 +53,9 @@ class Rotator(Node):
                 
                 self.rotate_done_pub.publish(Int8(data = self.id))  # Отправка сигнала о завершении поворота
 
+                # Логирование: поворот завершен
+                self.get_logger().info(f"Поворот завершен. Отправлен сигнал о завершении поворота с ID: {self.id}.")
+
                 # Сброс переменных
                 self.angle = None
                 self.start_angle = None
@@ -63,6 +69,9 @@ class Rotator(Node):
 
                 self.cmd_vel_pub.publish(twist)  # Отправка команды на движение
 
+                # Логирование: отправлена команда на движение
+                self.get_logger().info(f"Отправлена команда на движение: линейная скорость = {twist.linear.x}, угловая скорость = {twist.angular.z}.")
+
     def get_odom(self, msg):
         """Обработчик данных одометрии."""
         
@@ -73,9 +82,15 @@ class Rotator(Node):
             self.cur_angle = np.degrees(self.cur_angle)
             self.cur_angle = 360 + self.cur_angle if self.cur_angle < 0 else self.cur_angle
 
+            # Логирование: текущий угол поворота
+            self.get_logger().info(f"Текущий угол поворота: {self.cur_angle} градусов.")
+
             # Фиксация начального угла перед поворотом робота
             if self.start_angle is None:
                 self.start_angle = self.cur_angle
+
+                # Логирование: начальный угол поворота
+                self.get_logger().info(f"Фиксация начального угла поворота: {self.start_angle} градусов.")
 
     def euler_from_quaternion(self, quaternion):
         """Перевод кватерниона в углы Эйлера."""
@@ -105,6 +120,9 @@ class Rotator(Node):
         self.linear_x = msg.linear_x  # Линейная скорость
         self.angular_z = msg.angular_z  # Угловая скорость
         self.id = msg.id  # Идентификатор вызывающей ноды
+
+        # Логирование: получена команда на поворот
+        self.get_logger().info(f"Получена команда на поворот: угол = {self.angle}, линейная скорость = {self.linear_x}, угловая скорость = {self.angular_z}, ID = {self.id}.")
 
 
 def main():

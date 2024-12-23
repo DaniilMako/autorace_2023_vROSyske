@@ -58,12 +58,16 @@ class Obstacles_Handler(Node):
         # Дистанция для начала поворота
         self.distance = self.declare_parameter('distance', 0.0).get_parameter_value().double_value
 
+        # Логирование: узел запущен
+        # self.get_logger().info("Узел Obstacles_Handler запущен.")
+
     def handle_sign(self, msg):
         """Обработчик распознанных знаков."""
         
         # Действия при проезде знака дорожных работ
         if msg.data == 'road_works_sign' and self.enable_detection:
             self.max_vel_pub.publish(Float64(data = self.in_speed))  # Устанавливаем скорость для проезда зоны работ
+            self.get_logger().info("О Б Н А Р У Ж Е Н знак 'road_works_sign'. Установлена скорость для проезда зоны работ.")
 
     def get_distance(self, msg):
         """Обработчик данных лидара."""
@@ -74,33 +78,44 @@ class Obstacles_Handler(Node):
 
             if front_distance < self.distance:
                 self.enable_following_pub.publish(Bool(data = False))  # Отключаем следование по полосе
+                self.get_logger().info(f"О Б Н А Р У Ж Е Н О препятствие на расстоянии {front_distance}. Отключено следование по полосе.")
 
                 # Поворот налево 
                 if self.dir:
                     self.rotate_pub.publish(Rotate(angle = self.angle_L, linear_x = self.linear_x_L, angular_z = self.angular_z_L, id = self.ID))  # Отправляем команду поворота налево
+                    self.get_logger().info("Отправлена команда на поворот НАЛЕВО.")
 
                 # Поворот направо 
                 if not self.dir and self.turned:
                     self.rotate_pub.publish(Rotate(angle = self.angle_R, linear_x = self.linear_x_R, angular_z = self.angular_z_R, id = self.ID))  # Отправляем команду поворота направо
+                    self.get_logger().info("Отправлена команда на поворот НАПРАВО.")
                
     def set_rotate_done(self, msg):
         """Обработчик сигнала о завершении поворота."""
         
         if msg.data == self.ID:
             self.turned = True  # Устанавливаем флаг окончания поворота
+            self.get_logger().info("Поворот завершен.")
 
             # Смена направления поворота
             if self.dir:
                 self.dir = False  # Меняем направление на поворот направо
+                self.get_logger().info("Смена направления поворота: НАПРАВО.")
             else:
                 # Отключение ноды после завершения второго поворота
                 self.enable_following_pub.publish(Bool(data = True))  # Включаем следование по полосе
                 self.max_vel_pub.publish(Float64(data = self.out_speed))  # Устанавливаем скорость для выезда из зоны препятствий
+                self.get_logger().info("В К Л следование по полосе. Установлена скорость для выезда из зоны препятствий.")
+                self.get_logger().info("В Ы К Л режим объезда препятствий.")
+                self.get_logger().info("Узел Obstacles_Handler З А В Е Р Ш И Л работу.")
+                self.get_logger().info("Узел Obstacles_Handler З А В Е Р Ш И Л работу.")
+                self.get_logger().info("Узел Obstacles_Handler З А В Е Р Ш И Л работу.")
                 rclpy.shutdown()  # Завершаем работу узла
 
     def get_detection_state(self, msg):
         """Обработчик состояния детекции знаков."""
         self.enable_detection = msg.data  # Устанавливаем состояние детекции знаков
+        self.get_logger().info(f"Состояние детекции знаков: {self.enable_detection}.")
 
     def get_odom(self, msg):
         """Обработчик данных одометрии."""
@@ -110,6 +125,7 @@ class Obstacles_Handler(Node):
 
         if pose_x >= 0.74 and pose_y >= 2.0:
             self.enable = True  # Включаем режим объезда препятствий
+            self.get_logger().info("В К Л режим объезда препятствий.")
 
 
 def main():

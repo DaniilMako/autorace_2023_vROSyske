@@ -28,8 +28,14 @@ class Traffic_Light_Handler(Node):
         # Инициализируем мост для преобразования ROS-изображений в OpenCV
         self.cv_bridge = CvBridge()
 
+        # Логирование: узел запущен
+        # self.get_logger().info("Узел Traffic_Light_Handler запущен.")
+
     def find_green(self, msg):
         """ Метод для поиска зеленого цвета на изображении. """
+
+        # Логирование: получено новое изображение
+        self.get_logger().info("Получено новое изображение для обработки.")
 
         # Считывание изображения и перевод в формат HSV
         image = self.cv_bridge.imgmsg_to_cv2(msg, msg.encoding)
@@ -41,6 +47,12 @@ class Traffic_Light_Handler(Node):
         # Если на изображении есть зеленый цвет, отправляем сигнал на начало движения
         if np.any(green_mask != 0):
             self.enable_following_pub.publish(Bool(data = True))
+
+            # Логирование: зеленый цвет обнаружен
+            self.get_logger().info("ЗЕЛЕНЫЙ цвет О Б Н А Р У Ж Е Н. Отправлен сигнал на СТАРТ.")
+            self.get_logger().info("ЗЕЛЕНЫЙ цвет О Б Н А Р У Ж Е Н. Отправлен сигнал на СТАРТ.")
+            self.get_logger().info("ЗЕЛЕНЫЙ цвет О Б Н А Р У Ж Е Н. Отправлен сигнал на СТАРТ.")
+            
             rclpy.shutdown()  # Завершаем работу узла после обнаружения зеленого цвета
 
 

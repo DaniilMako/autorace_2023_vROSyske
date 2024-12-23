@@ -24,11 +24,23 @@ class LineDetector(Node):
         self.img_proj_sub = self.create_subscription(Image, '/color/image_projected', self.image_processing, 1)  # Подписчик на трансформированное изображение
 
         self.cv_bridge = CvBridge()  # Мост для преобразования изображений между ROS и OpenCV
-        self.is_parking = False  # Флаг парковки (не используется в данном коде)
+
+        # Логирование: узел запущен
+        # self.get_logger().info("Узел LineDetector запущен.")
+
+        # Счетчик для уменьшения частоты вывода логов
+        self.log_counter = 0
         
     def image_processing(self, msg):
         """Обработка изображения для определения центров линий."""
         
+        # Увеличиваем счетчик
+        self.log_counter += 1
+
+        # Логирование: выводим сообщение только при каждом третьем вызове
+        if self.log_counter % 30 == 0:
+            self.get_logger().info("Получено новое изображение для обработки.")
+
         # Считывание изображения и перевод в HSV
         image = self.cv_bridge.imgmsg_to_cv2(msg, msg.encoding)
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -64,6 +76,10 @@ class LineDetector(Node):
 
         # Публикация центра между линиями
         self.center_lane_pub.publish(Float64(data = np.sum(centers_x) / len(centers_x)))
+
+        # Логирование: выводим сообщение только при каждом третьем вызове
+        if self.log_counter % 30 == 0:
+            self.get_logger().info(f"Центр между линиями: {np.sum(centers_x) / len(centers_x)}")
 
 
 def main():

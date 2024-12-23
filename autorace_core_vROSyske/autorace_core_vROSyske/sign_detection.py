@@ -47,8 +47,20 @@ class Sign_detection(Node):
 
         self.cvBridge = CvBridge()  # Мост для преобразования изображений между ROS и OpenCV
 
+        # Логирование: узел запущен
+        # self.get_logger().info("Узел Sign_detection запущен.")
+
+        # Счетчик для уменьшения частоты вывода логов
+        self.log_counter = 0
+
     def subscription_callback(self, image_msg):
         """ Обработчик изображений с камеры. """
+        # Увеличиваем счетчик
+        self.log_counter += 1
+
+        # Логирование: получено новое изображение
+        if self.log_counter % 30 == 0:
+            self.get_logger().info("Получено новое изображение для обработки.")
 
         # Преобразуем ROS-изображение в формат OpenCV
         image = self.cvBridge.imgmsg_to_cv2(image_msg, image_msg.encoding)
@@ -68,6 +80,9 @@ class Sign_detection(Node):
                 image = result.render()[0]  # Отображаем результаты детекции на изображении
                 cur_sign = self.classes[result.pandas().xyxy[0]['class'].values[0]]  # Получаем класс знака
 
+                # Логирование: обнаружен знак
+                self.get_logger().info(f"О Б Н А Р У Ж Е Н знак: {cur_sign}")
+
                 # Усредняем результат по заданному количеству детекций
                 if len(self.detects) != self.detects_cnt:
                     self.detects.append(cur_sign)  # Добавляем текущий знак в список
@@ -79,9 +94,16 @@ class Sign_detection(Node):
                     self.detects = []  # Очищаем список детекций
                     self.class_pub.publish(String(data = cur_sign))  # Публикуем распознанный знак
 
+                    # Логирование: опубликован распознанный знак
+                    self.get_logger().info(f"Опубликован распознанный знак: {cur_sign}")
+
         # Преобразуем изображение обратно в формат ROS
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR) 
         self.image_pub.publish(self.cvBridge.cv2_to_imgmsg(image,  image_msg.encoding))
+
+        # Логирование: изображение с аннотациями опубликовано
+        if self.log_counter % 30 == 0:
+            self.get_logger().info("Изображение с аннотациями опубликовано.")
                 
 
 def main():
