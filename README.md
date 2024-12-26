@@ -15,7 +15,7 @@ A ROS2 metapackage that has necessary packages for AutoRace 2023 challenge.
 
 * `autorace_camera` - обработка изображения для следования за линией.
 
-* `autorace_core_vROSyske` - логика прохождения испытаний.
+* `autorace_core_vROSyske` - ядро логики прохождения испытаний.
 
 * `robot_rotate_interface` - поворот робота.
 
