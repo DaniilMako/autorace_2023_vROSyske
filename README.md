@@ -19,6 +19,7 @@ A ROS2 metapackage that has necessary packages for AutoRace 2023 challenge.
 
 * `robot_rotate_interface` - поворот робота.
 
+testing
 
 ## Usage for AutoRace 2023
 
