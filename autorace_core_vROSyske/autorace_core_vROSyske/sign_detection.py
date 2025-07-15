@@ -4,6 +4,8 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import String
+from std_msgs.msg import Bool
+from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
@@ -28,6 +30,9 @@ class Sign_detection(Node):
         # Издатели
         self.class_pub = self.create_publisher(String, '/sign', 1)  # Издатель для отправки распознанного знака
         self.image_pub = self.create_publisher(Image, '/color/detect', 1)  # Издатель для отправки изображения с аннотациями
+        self.stop_autorace = self.create_publisher(Bool, '/enable_following', 1)
+        self.robot_finish = self.create_publisher(String, '/robot_finish', 1)
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 1)  # Издатель для команд управления движением
         
         # Подписчики
         self.image_sub = self.create_subscription(Image, '/color/image', self.subscription_callback, 1)  # Подписчик на изображения с камеры
@@ -92,6 +97,13 @@ class Sign_detection(Node):
                     cur_sign = unique[np.bincount(pos).argmax()] 
 
                     self.detects = []  # Очищаем список детекций
+                    if cur_sign == "tunnel_sign":
+                        self.robot_finish.publish(String(data = "vROSyske"))
+                        self.stop_autorace.publish(Bool(data = False))
+                        twist = Twist()   
+                        twist.linear.x = 0
+                        twist.angular.z = 0
+                        self.cmd_vel_pub.publish(twist)  # Публикация команды управления 
                     self.class_pub.publish(String(data = cur_sign))  # Публикуем распознанный знак
 
                     # Логирование: опубликован распознанный знак
